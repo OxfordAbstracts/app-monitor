@@ -12,6 +12,7 @@
   "dependencies": {
     "dotenv": "^8.2.0",
     "forever-monitor": "^2.0.0",
+    "moment": "^2.24.0",
     "request": "^2.88.2",
     "request-promise": "^4.2.5"
   }
