@@ -1,0 +1,5 @@
+{
+    "allowedTimeoutRatio": 0.04,
+    "allowedErrorRatio": 0.08,
+    "sleepMsBetweenCycles": 10000
+}
