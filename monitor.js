@@ -49,7 +49,7 @@ const shouldRestart = ({ allowedTimeoutRatio, allowedErrorRatio, minRequests, in
     const errorRatio = statusCodes.filter(sc => sc >= 500).length / statusCodes.length
     const timeoutRatio = statusCodes.filter(sc => sc === 503).length / statusCodes.length
 
-    console.log('nowMoment', nowMoment);
+    console.log('datetime', nowMoment.format());
     console.log('request count', statusCodes.length);
     console.log('error ratio', errorRatio);
     console.log('timeout ratio', timeoutRatio);
