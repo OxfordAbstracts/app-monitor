@@ -62,10 +62,13 @@ const shouldRestart = ({ allowedTimeoutRatio, allowedErrorRatio, minRequests, in
 
 };
 
-const restartApp = async () => {
+const restartApp = async ({intervalMs, previousIncludedIntervals}) => {
     console.log(`Restarting dynos for ${process.env.APP_NAME}`)
-    const result = await heroku.delete(`/apps/${process.env.APP_NAME}/dynos`);
-    console.log('Dynos restarted')
+    await heroku.delete(`/apps/${process.env.APP_NAME}/dynos`);
+    console.log('Dynos restarted. Pausing restarts')
+    await new Promise(r => setTimeout(r, intervalMs * previousIncludedIntervals));
+    console.log('Restarts running again');
+    
 }
 
 
@@ -79,7 +82,7 @@ const go = async () => {
 
         const now = Date.now();
         if(shouldRestart(config, now, logs)){
-            await restartApp()
+            await restartApp(config)
         }else{
             console.log('No restart required')
         }

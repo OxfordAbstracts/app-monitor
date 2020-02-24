@@ -1,7 +1,7 @@
 {
     "allowedTimeoutRatio": 0.06,
     "allowedErrorRatio": 0.08,
-    "minRequests": 40,
+    "minRequests": 30,
     "intervalMs": 20000,
     "previousIncludedIntervals": 3
 }
