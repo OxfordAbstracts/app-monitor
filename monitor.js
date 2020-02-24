@@ -1,11 +1,14 @@
+require('dotenv').config()
+
 const rp = require('request-promise');
 const moment = require('moment')
-require('dotenv').config()
+const Heroku = require('heroku-client')
+const heroku = new Heroku({ token: process.env.HEROKU_TARGET_APP_API_TOKEN })
 
 
 const getLogs = async () => {
     const options = {
-        uri: 'https://papertrailapp.com/api/v1/events/search.json?q=heroku/router&limit=1000',
+        uri: 'https://papertrailapp.com/api/v1/events/search.json?q=heroku/router&limit=2000',
         headers: {
             'X-Papertrail-Token': process.env.PAPERTRAIL_TOKEN
         },
@@ -47,9 +50,9 @@ const shouldRestart = ({ allowedTimeoutRatio, allowedErrorRatio, minRequests, in
     const timeoutRatio = statusCodes.filter(sc => sc === 503).length / statusCodes.length
 
     console.log('nowMoment', nowMoment);
-    console.log('statusCodes.length', statusCodes.length);
-    console.log('errorRatio', errorRatio);
-    console.log('timeoutRatio', timeoutRatio);
+    console.log('request count', statusCodes.length);
+    console.log('error ratio', errorRatio);
+    console.log('timeout ratio', timeoutRatio);
 
     if (statusCodes.length < minRequests) { // not enough data to know if we should restart
         return false
@@ -60,7 +63,9 @@ const shouldRestart = ({ allowedTimeoutRatio, allowedErrorRatio, minRequests, in
 };
 
 const restartApp = async () => {
-
+    console.log(`Restarting dynos for ${process.env.APP_NAME}`)
+    const result = await heroku.delete(`/apps/${process.env.APP_NAME}/dynos`);
+    console.log('Dynos restarted')
 }
 
 
@@ -73,9 +78,10 @@ const go = async () => {
         const logs = await getLogs()
 
         const now = Date.now();
-
-        if (shouldRestart(config, now, logs)) {
+        if(shouldRestart(config, now, logs)){
             await restartApp()
+        }else{
+            console.log('No restart required')
         }
 
         await new Promise(r => setTimeout(r, intervalMs));
@@ -83,7 +89,7 @@ const go = async () => {
         process.exit(0)
 
     } catch (err) {
-        console.error(err)
+        console.error('monitor go error: ', err)
     }
 
 }
