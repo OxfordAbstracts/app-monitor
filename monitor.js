@@ -31,7 +31,7 @@ const getStatusCode = (log) => {
     }
 }
 
-const shouldRestart = ({ allowedTimeoutRatio, allowedErrorRatio, minRequests, intervalMs, previousIncludedIntervals }, now, logs) => {
+const shouldRestart = ({ allowedTimeoutRatio, allowedErrorRatio, sampleMs, minErrorCount }, now, logs) => {
 
     
     const nowMoment = moment(now)
@@ -40,21 +40,26 @@ const shouldRestart = ({ allowedTimeoutRatio, allowedErrorRatio, minRequests, in
 
         const logMoment = moment(l.received_at)
         
-        return nowMoment.diff(logMoment) < intervalMs * (previousIncludedIntervals + 1)
+        return nowMoment.diff(logMoment) < sampleMs
 
     });
 
     const statusCodes = recentLogs.map(getStatusCode).filter(sc => sc)    
 
-    const errorRatio = statusCodes.filter(sc => sc >= 500).length / statusCodes.length
-    const timeoutRatio = statusCodes.filter(sc => sc === 503).length / statusCodes.length
+    const errors = statusCodes.filter(sc => sc >= 500).length
+    const timeouts = statusCodes.filter(sc => sc === 503).length
+
+    const errorRatio = errors / statusCodes.length
+    const timeoutRatio = timeouts / statusCodes.length
 
     console.log('datetime', nowMoment.format());
     console.log('request count', statusCodes.length);
+    console.log('errors', errors);
     console.log('error ratio', errorRatio);
+    console.log('timeouts', timeouts);
     console.log('timeout ratio', timeoutRatio);
 
-    if (statusCodes.length < minRequests) { // not enough data to know if we should restart
+    if (errors < minErrorCount && timeouts < minErrorCount) { // not enough data to know if we should restart
         return false
     }
 
@@ -62,12 +67,12 @@ const shouldRestart = ({ allowedTimeoutRatio, allowedErrorRatio, minRequests, in
 
 };
 
-const restartApp = async ({intervalMs, previousIncludedIntervals}) => {
+const restartApp = async ({sampleMs}) => {
     console.log(`Restarting dynos for ${process.env.APP_NAME}`)
     await heroku.delete(`/apps/${process.env.APP_NAME}/dynos`);
-    console.log('Dynos restarted. Pausing restarts')
-    await new Promise(r => setTimeout(r, intervalMs * previousIncludedIntervals));
-    console.log('Restarts running again');
+    console.log('Dynos restarted. Pausing monitor')
+    await new Promise(r => setTimeout(r, sampleMs));
+    console.log('monitor running again');
     
 }
 
@@ -85,9 +90,8 @@ const go = async () => {
             await restartApp(config)
         }else{
             console.log('No restart required')
+            await new Promise(r => setTimeout(r, intervalMs));
         }
-
-        await new Promise(r => setTimeout(r, intervalMs));
 
         process.exit(0)
 
