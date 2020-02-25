@@ -33,18 +33,18 @@ const getStatusCode = (log) => {
 
 const shouldRestart = ({ allowedTimeoutRatio, allowedErrorRatio, sampleMs, minErrorCount }, now, logs) => {
 
-    
+
     const nowMoment = moment(now)
 
     const recentLogs = logs.filter(l => {
 
         const logMoment = moment(l.received_at)
-        
+
         return nowMoment.diff(logMoment) < sampleMs
 
     });
 
-    const statusCodes = recentLogs.map(getStatusCode).filter(sc => sc)    
+    const statusCodes = recentLogs.map(getStatusCode).filter(sc => sc)
 
     const errors = statusCodes.filter(sc => sc >= 500).length
     const timeouts = statusCodes.filter(sc => sc === 503).length
@@ -59,7 +59,7 @@ const shouldRestart = ({ allowedTimeoutRatio, allowedErrorRatio, sampleMs, minEr
     console.log('timeouts', timeouts);
     console.log('timeout ratio', timeoutRatio);
 
-    if (errors < minErrorCount && timeouts < minErrorCount) { // not enough data to know if we should restart
+    if (errors < minErrorCount) { // not enough data to know if we should restart
         return false
     }
 
@@ -67,13 +67,13 @@ const shouldRestart = ({ allowedTimeoutRatio, allowedErrorRatio, sampleMs, minEr
 
 };
 
-const restartApp = async ({sampleMs}) => {
+const restartApp = async ({ sampleMs }) => {
     console.log(`Restarting dynos for ${process.env.APP_NAME}`)
     await heroku.delete(`/apps/${process.env.APP_NAME}/dynos`);
     console.log('Dynos restarted. Pausing monitor')
     await new Promise(r => setTimeout(r, sampleMs));
     console.log('monitor running again');
-    
+
 }
 
 
@@ -81,17 +81,17 @@ const go = async () => {
 
     try {
         const config = require('./config.json')
-        const {intervalMs} = config;
+        const { intervalMs } = config;
 
         const logs = await getLogs()
 
         const now = Date.now();
-        if(shouldRestart(config, now, logs)){
+        if (shouldRestart(config, now, logs)) {
             await restartApp(config)
-        }else{
+        } else {
             console.log('No restart required')
-            await new Promise(r => setTimeout(r, intervalMs));
         }
+        await new Promise(r => setTimeout(r, intervalMs));
 
         process.exit(0)
 
