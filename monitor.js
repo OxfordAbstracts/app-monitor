@@ -31,7 +31,7 @@ const getStatusCode = (log) => {
     }
 }
 
-const shouldRestart = ({ allowedTimeoutRatio, allowedErrorRatio, sampleMs, minErrorCount }, now, logs) => {
+const shouldRestart = ({ allowedTimeoutRatio, sampleMs, minErrorCount }, now, logs) => {
 
 
     const nowMoment = moment(now)
@@ -47,7 +47,7 @@ const shouldRestart = ({ allowedTimeoutRatio, allowedErrorRatio, sampleMs, minEr
     const statusCodes = recentLogs.map(getStatusCode).filter(sc => sc)
 
     const errors = statusCodes.filter(sc => sc >= 500).length
-    const timeouts = statusCodes.filter(sc => sc === 503).length
+    const timeouts = statusCodes.filter(sc => sc >= 503).length
 
     const errorRatio = errors / statusCodes.length
     const timeoutRatio = timeouts / statusCodes.length
@@ -59,11 +59,8 @@ const shouldRestart = ({ allowedTimeoutRatio, allowedErrorRatio, sampleMs, minEr
     console.log('timeouts', timeouts);
     console.log('timeout ratio', timeoutRatio);
 
-    if (errors < minErrorCount) { // not enough data to know if we should restart
-        return false
-    }
-
-    return errorRatio > allowedErrorRatio || timeoutRatio > allowedTimeoutRatio
+    return timeouts >= minErrorCount
+        && timeoutRatio > allowedTimeoutRatio
 
 };
 

@@ -1,6 +1,5 @@
 {
     "allowedTimeoutRatio": 0.05,
-    "allowedErrorRatio": 0.1,
     "minErrorCount": 3,
     "intervalMs": 10000,
     "sampleMs": 60000
