@@ -1,13 +1,27 @@
-var forever = require('forever-monitor');
+var forever = require('forever-monitor')
 
-const file = 'monitor.js';
- 
-var child = new (forever.Monitor)(file, {
+// restarts all dynos when error rate goes too high
+const errorRestarterFile = 'errorRestarter.js'
+
+var errorRestarterChild = new (forever.Monitor)(errorRestarterFile, {
   args: []
-});
+})
 
-child.on('exit', function () {
-  console.log(`${file} has exited`);
-});
+errorRestarterChild.on('exit', function () {
+  console.log(`${errorRestarterFile} has exited`)
+})
 
-child.start();
+errorRestarterChild.start()
+
+// restarts a proportion of dynos every set period of time
+const periodicRestarterFile = 'periodicRestarter.js'
+
+var periodicRestarterChild = new (forever.Monitor)(periodicRestarterFile, {
+  args: []
+})
+
+periodicRestarterChild.on('exit', function () {
+  console.log(`${periodicRestarterFile} has exited`)
+})
+
+periodicRestarterChild.start()
