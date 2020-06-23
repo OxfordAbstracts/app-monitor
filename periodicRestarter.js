@@ -28,7 +28,7 @@ const every15MinsRestart10pcOfDynos = async () => {
 }
 
 try {
-  every15MinsRestart10pcOfDynos(0)
+  every15MinsRestart10pcOfDynos()
 } catch (err) {
   console.log('err', err)
 }
