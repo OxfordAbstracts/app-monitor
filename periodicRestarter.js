@@ -1,7 +1,7 @@
 const { getDynos, sleep, restartDyno } = require('./heroku')
 const _ = require('lodash')
-const INTERVAL = 75 * 60 * 1000 // 75 mins
-const RATIO = 0.1
+const INTERVAL = 60 * 60 * 1000 // 60 mins
+const RATIO = 0.15
 
 const every15MinsRestart10pcOfDynos = async () => {
   let dynos = await getDynos()
