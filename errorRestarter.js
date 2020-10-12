@@ -69,15 +69,16 @@ const go = async () => {
     const now = Date.now()
     if (shouldRestart(config, now, logs)) {
       await restartAllDynos(intervalMs)
+      await sleep(60000 * 2)
     } else {
       console.log('No restart required')
     }
     await sleep(intervalMs)
-
-    process.exit(0)
   } catch (err) {
     console.error('errorRestarter error: ', err)
   }
+
+  go()
 }
 
 go()
