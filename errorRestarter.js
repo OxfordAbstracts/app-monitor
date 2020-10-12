@@ -62,14 +62,14 @@ const shouldRestart = ({ allowedTimeoutRatio, sampleMs, minErrorCount }, now, lo
 
 const go = async () => {
   try {
-    const { intervalMs } = config
+    const { intervalMs, sampleMs } = config
 
     const logs = await getLogs()
 
     const now = Date.now()
     if (shouldRestart(config, now, logs)) {
       await restartAllDynos(intervalMs)
-      await sleep(60000 * 2)
+      await sleep(sampleMs * 2)
     } else {
       console.log('No restart required')
     }
